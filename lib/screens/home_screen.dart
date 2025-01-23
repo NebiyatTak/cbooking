@@ -117,30 +117,13 @@ class HomeScreen extends StatelessWidget {
             // Now Playing Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Now Playing",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      // Navigate to "See all" page
-                    },
-                    child: Text(
-                      "See all",
-                      style: TextStyle(
-                        color: Colors.amber,
-                        fontSize: 14.0,
-                      ),
-                    ),
-                  ),
-                ],
+              child: Text(
+                "Now Playing",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             SizedBox(height: 8.0),

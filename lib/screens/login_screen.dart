@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Password (min 8 characters)',
+                labelText: 'Password',
                 labelStyle: const TextStyle(color: Colors.white),
                 prefixIcon: const Icon(Icons.lock, color: Colors.white),
                 filled: true,

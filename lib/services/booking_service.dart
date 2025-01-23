@@ -11,7 +11,7 @@ class BookingService {
     required String chosenDate,
     required String showtime,
     required int totalPrice,
-    required String movieTitle,
+    required String movieTitle, required String paymentMethod,
   }) async {
     try {
       for (String seat in selectedSeats) {

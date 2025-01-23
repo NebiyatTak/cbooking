@@ -121,36 +121,26 @@ class SignUpScreen extends StatelessWidget {
 
                   // Input validation
                   if (username.isEmpty) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      const SnackBar(
-                          content: Text('Username cannot be empty.')),
-                    );
+                    _showErrorDialog(context, 'Username cannot be empty.');
                     return;
                   }
                   if (email.isEmpty) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      const SnackBar(content: Text('Email cannot be empty.')),
-                    );
+                    _showErrorDialog(context, 'Email cannot be empty.');
                     return;
                   }
                   if (!RegExp(
                           r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$')
                       .hasMatch(password)) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Password must be at least 8 characters long, '
-                          'include an uppercase letter, a lowercase letter, '
-                          'a number, and a special character.',
-                        ),
-                      ),
+                    _showErrorDialog(
+                      context,
+                      'Password must be at least 8 characters long, '
+                      'include an uppercase letter, a lowercase letter, '
+                      'a number, and a special character.',
                     );
                     return;
                   }
                   if (password != confirmPassword) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      const SnackBar(content: Text('Passwords do not match.')),
-                    );
+                    _showErrorDialog(context, 'Passwords do not match.');
                     return;
                   }
 
@@ -167,15 +157,10 @@ class SignUpScreen extends StatelessWidget {
                           "User signed up successfully. Username: ${user.displayName}");
                       Navigator.of(context).pushReplacementNamed('/home');
                     } else {
-                      scaffoldMessengerKey.currentState?.showSnackBar(
-                        const SnackBar(content: Text('Sign up failed.')),
-                      );
+                      _showErrorDialog(context, 'Sign up failed.');
                     }
                   } catch (e) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      const SnackBar(
-                          content: Text('An unknown error occurred.')),
-                    );
+                    _showErrorDialog(context, 'An unknown error occurred.');
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -196,6 +181,32 @@ class SignUpScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF000000),
+        title: const Text(
+          "Error",
+          style: TextStyle(color: Color(0xFFFFD700)),
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "OK",
+              style: TextStyle(color: Color(0xFFFFD700)),
+            ),
+          ),
+        ],
       ),
     );
   }
