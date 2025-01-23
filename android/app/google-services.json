@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "572759172490",
+    "project_id": "cbooking-57959",
+    "storage_bucket": "cbooking-57959.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572759172490:android:220cafa44a3c2a985c1473",
+        "android_client_info": {
+          "package_name": "com.example.cbooking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAc7mZU7wMxmpq8koiS1XJrZhmmCfoO4Ek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
