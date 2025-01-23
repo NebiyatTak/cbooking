@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'auth_service.dart'; // Import your AuthService class
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpScreen extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
@@ -8,14 +8,12 @@ class SignUpScreen extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-
-  final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
-      GlobalKey<ScaffoldMessengerState>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldMessengerKey, // Add the key here
       backgroundColor: const Color(0xFF000000), // Black background
       appBar: AppBar(
         title: const Text(
@@ -23,16 +21,12 @@ class SignUpScreen extends StatelessWidget {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF000000),
+        backgroundColor: const Color(0xFF000000), // Black background
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              Navigator.of(context).pushReplacementNamed('/login');
-            }
+            Navigator.of(context).pop(); // Navigate back
           },
         ),
       ),
@@ -80,7 +74,7 @@ class SignUpScreen extends StatelessWidget {
                 controller: passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: 'Password (min 8 characters)',
                   labelStyle: const TextStyle(color: Colors.white),
                   prefixIcon: const Icon(Icons.lock, color: Colors.white),
                   filled: true,
@@ -121,58 +115,94 @@ class SignUpScreen extends StatelessWidget {
 
                   // Input validation
                   if (username.isEmpty) {
-                    _showErrorDialog(context, 'Username cannot be empty.');
-                    return;
-                  }
-                  if (email.isEmpty) {
-                    _showErrorDialog(context, 'Email cannot be empty.');
-                    return;
-                  }
-                  if (!RegExp(
-                          r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$')
-                      .hasMatch(password)) {
-                    _showErrorDialog(
-                      context,
-                      'Password must be at least 8 characters long, '
-                      'include an uppercase letter, a lowercase letter, '
-                      'a number, and a special character.',
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Username cannot be empty.')),
                     );
-                    return;
-                  }
-                  if (password != confirmPassword) {
-                    _showErrorDialog(context, 'Passwords do not match.');
-                    return;
-                  }
-
-                  try {
-                    // Sign up with AuthService
-                    User? user = await AuthService().signUp(
-                      username,
-                      email,
-                      password,
+                  } else if (email.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Email cannot be empty.')),
                     );
+                  } else if (password.length < 8) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content:
+                              Text('Password must be at least 8 characters.')),
+                    );
+                  } else if (password != confirmPassword) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Passwords do not match.')),
+                    );
+                  } else {
+                    try {
+                      // Firebase Authentication
+                      UserCredential userCredential =
+                          await _auth.createUserWithEmailAndPassword(
+                        email: email,
+                        password: password,
+                      );
 
-                    if (user != null) {
-                      print(
-                          "User signed up successfully. Username: ${user.displayName}");
-                      Navigator.of(context).pushReplacementNamed('/home');
-                    } else {
-                      _showErrorDialog(context, 'Sign up failed.');
+                      // Add user info to Firestore
+                      await _firestore
+                          .collection('users')
+                          .doc(userCredential.user!.uid)
+                          .set({
+                        'username': username,
+                        'email': email,
+                        'uid': userCredential.user!.uid,
+                      });
+
+                      // Show success dialog and navigate to Login Page
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Sign Up Successful'),
+                          content: const Text(
+                              'Your account has been created successfully.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close the dialog
+                                // Navigate to Login Page
+                                Navigator.of(context)
+                                    .pushReplacementNamed('/login');
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    } on FirebaseAuthException catch (e) {
+                      String message;
+                      if (e.code == 'email-already-in-use') {
+                        message = 'The email is already registered.';
+                      } else if (e.code == 'invalid-email') {
+                        message = 'The email address is invalid.';
+                      } else if (e.code == 'weak-password') {
+                        message = 'The password is too weak.';
+                      } else {
+                        message = 'An error occurred. Please try again.';
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Unexpected error: $e')),
+                      );
                     }
-                  } catch (e) {
-                    _showErrorDialog(context, 'An unknown error occurred.');
                   }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFD700), // Gold
-                  shape: const StadiumBorder(),
+                  shape: const StadiumBorder(), // Oval shape
                   padding: const EdgeInsets.symmetric(
                       vertical: 15.0, horizontal: 50.0),
                 ),
                 child: const Text(
                   'Sign Up',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: Colors.black, // Black text for contrast
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -181,32 +211,6 @@ class SignUpScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF000000),
-        title: const Text(
-          "Error",
-          style: TextStyle(color: Color(0xFFFFD700)),
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "OK",
-              style: TextStyle(color: Color(0xFFFFD700)),
-            ),
-          ),
-        ],
       ),
     );
   }
